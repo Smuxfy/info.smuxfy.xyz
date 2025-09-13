@@ -27,18 +27,6 @@
 </table>
 
 <script>
-// Measure ping by fetching the page itself
-async function getPing() {
-  const start = Date.now();
-  try {
-    await fetch(window.location.href, { cache: 'no-store' });
-    const end = Date.now();
-    return end - start;
-  } catch {
-    return 'Ping failed';
-  }
-}
-
 // Function to get IP & location from ipapi.co
 async function getIPInfo() {
   try {
@@ -84,14 +72,11 @@ function getBrowserInfo() {
   };
 }
 
-// Combine and display visitor info with ping
+// Combine and display
 async function showVisitorInfo() {
-  const ping = await getPing(); // Get ping first
   const ipInfo = await getIPInfo();
   const browserInfo = getBrowserInfo();
-
   const allInfo = {
-    "Ping": ping + ' ms',
     "IP Address": ipInfo.ip,
     "Country": ipInfo.country,
     "Region": ipInfo.region,
