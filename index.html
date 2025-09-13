@@ -27,33 +27,53 @@
 </table>
 
 <script>
-// Function to get IP & location from ipapi.co
+// Your ipinfo.io token
+const IPINFO_TOKEN = 'b86640cf06e2db';
+
+// Measure ping to page
+async function getPing() {
+  const start = Date.now();
+  try {
+    await fetch(window.location.href, { cache: 'no-store' });
+    const end = Date.now();
+    return end - start;
+  } catch {
+    return 'Ping failed';
+  }
+}
+
+// Fetch IP info from ipinfo.io
 async function getIPInfo() {
   try {
-    const response = await fetch('https://ipapi.co/json/');
-    const data = await response.json();
+    const res = await fetch(`https://ipinfo.io/json?token=${IPINFO_TOKEN}`);
+    const data = await res.json();
+    const [lat, lon] = data.loc ? data.loc.split(',') : [0,0];
     return {
       ip: data.ip,
-      country: data.country_name,
+      country: data.country,
       region: data.region,
       city: data.city,
-      zip: data.postal,
-      location: data.region + ', ' + data.city + ', ' + data.country_name,
-      latitude: data.latitude,
-      longitude: data.longitude,
+      zip: data.postal || 'N/A',
+      location: `${data.city}, ${data.region}, ${data.country}`,
+      latitude: lat,
+      longitude: lon,
       timezone: data.timezone,
       current_time: new Date().toLocaleString('en-GB', { timeZone: data.timezone }),
       isp: data.org,
       org: data.org,
-      asn: data.asn
+      asn: data.org
     };
   } catch (err) {
     console.error(err);
-    return { ip: 'Unknown' };
+    return {
+      ip: 'Unknown', country: 'Unknown', region: 'Unknown', city: 'Unknown', zip: 'Unknown',
+      location: 'Unknown', latitude: 'Unknown', longitude: 'Unknown', timezone: 'Unknown',
+      current_time: 'Unknown', isp: 'Unknown', org: 'Unknown', asn: 'Unknown'
+    };
   }
 }
 
-// Function to get browser/system info
+// Get browser/system info
 function getBrowserInfo() {
   return {
     browser_name: navigator.userAgentData?.brands?.map(b => b.brand).join(', ') || navigator.appName,
@@ -72,11 +92,14 @@ function getBrowserInfo() {
   };
 }
 
-// Combine and display
+// Display all info
 async function showVisitorInfo() {
+  const ping = await getPing();
   const ipInfo = await getIPInfo();
   const browserInfo = getBrowserInfo();
+
   const allInfo = {
+    "Ping": typeof ping === 'number' ? ping + ' ms' : ping,
     "IP Address": ipInfo.ip,
     "Country": ipInfo.country,
     "Region": ipInfo.region,
